@@ -1,22 +1,25 @@
 <!doctype html>
 <html>
    <head>
-      <title>iphone Gyro Test</title>
+      <script src="/jquery/jquery-2.1.3.min.js" language="javascript"></script>
+      <script src="/socket.io/socket.io.js"></script>
+
+      <title>iphone Gyro</title>
+
+      <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no, minimal-ui'>
 
       <style type="text/css">
       #stream {
          height: 100%;
-         margin: 0px auto;
+         margin: 0px;
          display: block;
-         margin-top: 20px;
+         margin-top: 0px;
       }
       </style>
 
    </head>
 
    <body>
-      <script src="/socket.io/socket.io.js"></script>
-      <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 
       <script>
          var socket = io.connect(window.location.hostname+':3000');
@@ -35,20 +38,19 @@
             $('.start').hide();  // ??????????
 
             // Set sendGyroData to call at 2 Hz
-            nIntervId = setInterval(sendGyroData, 100);
+            nIntervId = setInterval(sendGyroData, 20);
          })
 
          // Send the gyro data to the server
          function sendGyroData()
          {
-            socket.emit('fromclient', {alpha: alpha, beta: beta, gamma: gamma});
+            socket.emit('fromclient', {alpha: alpha, gamma: gamma});
          }
 
          // Get gyro data when phone orientation changes
          window.ondeviceorientation = function(event)
          {
             alpha = event.alpha;
-            beta = event.beta;
             gamma = event.gamma;
          }
 

@@ -16,11 +16,14 @@ var SERVO_MAX = 250;
 var PAN_PIN = 0;
 var TIL_PIN = 1;
 
+var servoPan = SERVO_MIN;
+var servoTil = SERVO_MIN;
+var prevAlpha = 0;
+var prevGamma = 0;
 
-var servoPan = 150;
-var servoTil = 60;
-
+// Something to do with paths of files to feed client
 app.use('/', express.static(path.join(__dirname, 'stream')));
+app.use('/jquery', express.static(path.join(__dirname, '/jquery')));
 
 // Send client index.html
 app.get('/', function(req, res) {
@@ -40,11 +43,45 @@ io.on('connection', function(socket) {
 
    // Receive and print gyro data
    socket.on('fromclient', function(data) {
-      //servos.setServo(0, 100);
-      console.log('Some data.......');
-      console.log('Alpha: ' + data.alpha);
-      console.log('Beta:  ' + data.beta);
-      console.log('Gamma: ' + data.gamma);
+
+      if (prevAlpha == 0)
+      {
+         prevAlpha = data.alpha;
+         prevGamma = data.gamma;
+      }
+      else
+      {
+         //servoPan = servoPan + (data.alpha - prevAlpha);
+         //servoTil = servoTil + (data.gamma - prevGamma);
+
+         if ((servoPan + (data.alpha - prevAlpha)) > SERVO_MIN && (servoPan + (data.alpha - prevAlpha)) < SERVO_MAX)
+         {
+            servoPan = servoPan + (data.alpha - prevAlpha);
+            servos.setServo(PAN_PIN, servoPan);
+         }
+         if ((servoTil + (data.gamma - prevGamma)) > SERVO_MIN && (servoTil + (data.gamma - prevGamma)) < SERVO_MAX)
+         {
+            servoTil = servoTil + (data.gamma - prevGamma);
+            servos.setServo(TIL_PIN, servoTil);
+         }
+
+         prevAlpha = data.alpha;
+         prevGamma = data.gamma;
+
+         //console.log('Alpha: ' + prevAlpha);
+         //console.log('Gamma: ' + prevGamma);
+      }
+
+      //if (data.alpha <= 180)
+         //servoPan = data.alpha / .9 + 60;
+      //if (data.gamma <= 180)
+         //servoTil = data.gamma / .9 + 60;
+      //servos.setServo(PAN_PIN, servoPan);
+      //servos.setServo(TIL_PIN, servoTil);
+      //console.log('Some data.......');
+      //console.log('Alpha: ' + data.alpha);
+      //console.log('Beta:  ' + data.beta);
+      //console.log('Gamma: ' + data.gamma);
    });
 
    socket.on('startStream', function() {
@@ -78,8 +115,8 @@ function startStreaming(io)
       return;
    }
  
-   //var args = ["-w", "568", "-h", "340", "-o", "./stream/image_stream.jpg", "-t", "999999999", "-tl", "2000", "-q", "30", "-vf", "-hf"];
-   //proc1 = spawn('raspistill', args);
+   var args = ["-w", "586", "-h", "340", "-o", "./stream/image_stream.jpg", "-t", "999999999", "-tl", "1000", "-q", "10", "-vf", "-hf"];
+   proc1 = spawn('raspistill', args);
    proc2 = spawn('./servod');
  
    console.log('Watching for changes...');
